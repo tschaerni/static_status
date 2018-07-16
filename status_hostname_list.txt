@@ -24,20 +24,20 @@
 #
 # ping;<HOSTNAME or IP>
 #
-ping;www.heise.de
+Test Description for ping;ping;www.heise.de
 
 #
 # nc;<HOSTNAME or IP>;<PORT>
 #
-nc;www.heise.de;80
+Test description for nc;nc;www.heise.de;80
 
 #
 # curl;<URL>:<PORT>
 #
-curl;https://www.heise.de/ping
-curl;ftp://ftp.debian.org/debian/README
+Test description for curl;curl;https://www.heise.de/ping
+Test description for curl2;curl;ftp://ftp.debian.org/debian/README
 
 #
 # grep;<URL>;<ONE WORD>
 #
-grep;https://www.nkn-it.de/imprint.html;Nils
+Test description for grep;grep;https://www.nkn-it.de/imprint.html;Nils

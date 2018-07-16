@@ -249,10 +249,11 @@ function save_downtime() {
 
 # save_availability()
 function save_availability() {
-	MY_COMMAND="$1"
-	MY_HOSTNAME="$2"
-	MY_PORT="$3"
-	printf "\\n%s;%s;%s" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" >> "$MY_HOSTNAME_STATUS_OK"
+	MY_DESCRIPTION="$1"
+	MY_COMMAND="$2"
+	MY_HOSTNAME="$3"
+	MY_PORT="$4"
+	printf "\\n%s;%s;%s;%s" "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" >> "$MY_HOSTNAME_STATUS_OK"
 	if [[ "$BE_LOUD" = "yes" ]]; then
 		printf "\\n%-5s %-4s %s" "UP:" "$MY_COMMAND" "$MY_HOSTNAME"
 		if [[ $MY_COMMAND == "nc" ]]; then
@@ -403,16 +404,16 @@ function item_ok() {
 	<span class="badge"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span></span>
 EOF
 
-	if [[ "$MY_OK_COMMAND" = "ping" ]]; then
-		echo "ping $MY_OK_HOSTNAME"
-	elif [[ "$MY_OK_COMMAND" = "nc" ]]; then
-		echo "$(port_to_name "$MY_OK_PORT") on $MY_OK_HOSTNAME"
-	elif [[ "$MY_OK_COMMAND" = "curl" ]]; then
-		echo "Site $MY_OK_HOSTNAME"
-	elif [[ "$MY_OK_COMMAND" = "grep" ]]; then
-		echo "Grep for \"$MY_OK_PORT\" on  $MY_OK_HOSTNAME"
-	fi
-
+#	if [[ "$MY_OK_COMMAND" = "ping" ]]; then
+#		echo "ping $MY_OK_HOSTNAME"
+#	elif [[ "$MY_OK_COMMAND" = "nc" ]]; then
+#		echo "$(port_to_name "$MY_OK_PORT") on $MY_OK_HOSTNAME"
+#	elif [[ "$MY_OK_COMMAND" = "curl" ]]; then
+#		echo "Site $MY_OK_HOSTNAME"
+#	elif [[ "$MY_OK_COMMAND" = "grep" ]]; then
+#		echo "Grep for \"$MY_OK_PORT\" on  $MY_OK_HOSTNAME"
+#	fi
+	echo "$MY_DESCRIPTION"
 	echo "</li>"
 }
 
@@ -535,7 +536,7 @@ fi
 #
 
 MY_HOSTNAME_COUNT=0
-while IFS=';' read -r MY_COMMAND MY_HOSTNAME MY_PORT || [[ -n "$MY_COMMAND" ]]; do
+while IFS=';' read -r MY_DESCRIPTION MY_COMMAND MY_HOSTNAME MY_PORT || [[ -n "$MY_COMMAND" ]]; do
 
 	if [[ "$MY_COMMAND" = "ping" ]]; then
 		(( MY_HOSTNAME_COUNT++ ))
@@ -558,7 +559,7 @@ while IFS=';' read -r MY_COMMAND MY_HOSTNAME MY_PORT || [[ -n "$MY_COMMAND" ]]; 
 			if [[ "$MY_DOWN_TIME" -gt "0" ]]; then
 				save_history  "$MY_COMMAND" "$MY_HOSTNAME" "" "$MY_DOWN_TIME" "$MY_DATE_TIME"
 			fi
-			save_availability "$MY_COMMAND" "$MY_HOSTNAME" ""
+			save_availability "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" ""
 		else
 			check_downtime "$MY_COMMAND" "$MY_HOSTNAME" ""
 			save_downtime "$MY_COMMAND" "$MY_HOSTNAME" "" "$MY_DOWN_TIME"
@@ -571,7 +572,7 @@ while IFS=';' read -r MY_COMMAND MY_HOSTNAME MY_PORT || [[ -n "$MY_COMMAND" ]]; 
 			if [[ "$MY_DOWN_TIME" -gt "0" ]]; then
 				save_history  "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" "$MY_DOWN_TIME" "$MY_DATE_TIME"
 			fi
-			save_availability "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT"
+			save_availability "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT"
 		else
 			check_downtime "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT"
 			save_downtime "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" "$MY_DOWN_TIME"
@@ -584,7 +585,7 @@ while IFS=';' read -r MY_COMMAND MY_HOSTNAME MY_PORT || [[ -n "$MY_COMMAND" ]]; 
 			if [[ "$MY_DOWN_TIME" -gt "0" ]]; then
 				save_history  "$MY_COMMAND" "$MY_HOSTNAME" "" "$MY_DOWN_TIME" "$MY_DATE_TIME"
 			fi
-			save_availability "$MY_COMMAND" "$MY_HOSTNAME" ""
+			save_availability "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" ""
 		else
 			check_downtime "$MY_COMMAND" "$MY_HOSTNAME" ""
 			save_downtime "$MY_COMMAND" "$MY_HOSTNAME" "" "$MY_DOWN_TIME"
@@ -597,7 +598,7 @@ while IFS=';' read -r MY_COMMAND MY_HOSTNAME MY_PORT || [[ -n "$MY_COMMAND" ]]; 
 			if [[ "$MY_DOWN_TIME" -gt "0" ]]; then
 				save_history  "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" "$MY_DOWN_TIME" "$MY_DATE_TIME"
 			fi
-			save_availability "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT"
+			save_availability "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT"
 		else
 			check_downtime "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT"
 			save_downtime "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" "$MY_DOWN_TIME"
@@ -628,7 +629,7 @@ done <"$MY_HOSTNAME_STATUS_DOWN"
 # Get available systems
 MY_AVAILABLE_COUNT=0
 MY_AVAILABLE_ITEMS=()
-while IFS=';' read -r MY_OK_COMMAND MY_OK_HOSTNAME MY_OK_PORT || [[ -n "$MY_OK_COMMAND" ]]; do
+while IFS=';' read -r MY_DESCRIPTION MY_OK_COMMAND MY_OK_HOSTNAME MY_OK_PORT || [[ -n "$MY_OK_COMMAND" ]]; do
 
 	if [[ "$MY_OK_COMMAND" = "ping" ]] || [[ "$MY_OK_COMMAND" = "nc" ]] || [[ "$MY_OK_COMMAND" = "curl" ]] || [[ "$MY_OK_COMMAND" = "grep" ]]; then
 		(( MY_AVAILABLE_COUNT++ ))
