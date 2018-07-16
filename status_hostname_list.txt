@@ -32,7 +32,7 @@ ping;www.heise.de
 nc;www.heise.de;80
 
 #
-# curl;<URL>;<PORT>
+# curl;<URL>:<PORT>
 #
 curl;https://www.heise.de/ping
 curl;ftp://ftp.debian.org/debian/README
