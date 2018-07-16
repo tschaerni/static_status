@@ -5,64 +5,6 @@
 
 # Simple Bash script to generate a status page.
 
-################################################################################
-#### Configuration Section
-################################################################################
-
-# Tip: You can also outsource configuration to an extra configuration file.
-#      Just create a file named 'config' at the location of this script.
-#      You can find an example here:
-#      https://github.com/Cyclenerd/static_status/blob/master/config-example
-#      You can also pass a configuration file with the variable MY_STATUS_CONFIG.
-
-# Title for the status page
-MY_STATUS_TITLE="Status Page"
-
-# Link for the homepage button
-MY_HOMEPAGE_URL="https://github.com/Cyclenerd/static_status"
-
-# Shortcut to place the configuration file in a folder.
-# Save it without / at the end.
-MY_STATUS_CONFIG_DIR="$HOME/status"
-
-# List with the configuration. What do we want to monitor?
-MY_HOSTNAME_FILE="$MY_STATUS_CONFIG_DIR/status_hostname_list.txt"
-
-# Where should the HTML status page be stored?
-MY_STATUS_HTML="$HOME/status_index.html"
-
-# Text file in which you can place a status message.
-# If the file exists and has a content, all errors on the status page are overwritten.
-MY_MAINTENANCE_TEXT_FILE="$MY_STATUS_CONFIG_DIR/status_maintenance_text.txt"
-
-# Duration we wait for response (nc and curl).
-MY_TIMEOUT="2"
-
-# Duration we wait for response (only ping).
-MY_PING_TIMEOUT="4"
-MY_PING_COUNT="2"
-
-# Location for the status files. Please do not edit created files.
-MY_HOSTNAME_STATUS_OK="$MY_STATUS_CONFIG_DIR/status_hostname_ok.txt"
-MY_HOSTNAME_STATUS_DOWN="$MY_STATUS_CONFIG_DIR/status_hostname_down.txt"
-MY_HOSTNAME_STATUS_LASTRUN="$MY_STATUS_CONFIG_DIR/status_hostname_last.txt"
-MY_HOSTNAME_STATUS_HISTORY="$MY_STATUS_CONFIG_DIR/status_hostname_history.txt"
-MY_HOSTNAME_STATUS_HISTORY_TEMP_SORT="/tmp/status_hostname_history_sort.txt"
-
-# CSS Stylesheet for the status page
-MY_STATUS_STYLESHEET="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css"
-# A footer
-MY_STATUS_FOOTER='Powered by <a href="https://github.com/Cyclenerd/static_status">static_status</a>'
-
-# Lock file to prevent duplicate execution.
-# If this file exists, status.sh script is terminated.
-# If something has gone wrong and the file has not been deleted automatically, you can delete it.
-MY_STATUS_LOCKFILE="/tmp/STATUS_SH_IS_RUNNING.lock"
-
-################################################################################
-#### END Configuration Section
-################################################################################
-
 ME=$(basename "$0")
 BASE_PATH=$(dirname "$0") # TODO: Resolv symlinks https://stackoverflow.com/questions/59895
 MY_TIMESTAMP=$(date -u "+%s")
@@ -79,10 +21,8 @@ MY_COMMANDS=(
 	grep
 )
 
-# if a config file has been specified with MY_STATUS_CONFIG=myfile use this one, otherwise default to config
-if [[ ! -n "$MY_STATUS_CONFIG" ]]; then
-	MY_STATUS_CONFIG="$BASE_PATH/config"
-fi
+# Load config
+MY_STATUS_CONFIG="$BASE_PATH/config"
 
 ################################################################################
 # Usage
