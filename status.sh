@@ -555,7 +555,7 @@ while IFS=';' read -r MY_DESCRIPTION MY_COMMAND MY_HOSTNAME MY_PORT || [[ -n "$M
 		fi
 	elif [[ "$MY_COMMAND" = "curl" ]]; then
 		(( MY_HOSTNAME_COUNT++ ))
-		if curl -If --max-time "$MY_TIMEOUT" "$MY_HOSTNAME" &> /dev/null; then
+		if curl -If --max-time "$MY_TIMEOUT" "$MY_HOSTNAME""$MY_PORT" &> /dev/null; then
 			check_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" ""
 			# Check status change
 			if [[ "$MY_DOWN_TIME" -gt "0" ]]; then

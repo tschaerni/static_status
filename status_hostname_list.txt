@@ -32,10 +32,10 @@ Test Description for ping;ping;www.heise.de
 Test description for nc;nc;www.heise.de;80
 
 #
-# curl;<URL>:<PORT>
+# curl;<URL>;:<PORT>
 #
 Test description for curl;curl;https://www.heise.de/ping
-Test description for curl2;curl;ftp://ftp.debian.org/debian/README
+Test description for curl that will fail;curl;ftp://ftp.debian.org/debian/README;:80
 
 #
 # grep;<URL>;<ONE WORD>
