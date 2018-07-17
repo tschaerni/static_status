@@ -316,21 +316,8 @@ function page_header() {
 <div class="page-header">
 	<h1>
 		$MY_STATUS_TITLE
-		<span class="pull-right hidden-xs hidden-sm">
-			<a href="$MY_HOMEPAGE_URL" class="btn btn-primary" role="button">
-				<span class="glyphicon glyphicon-home" aria-hidden="true"></span>
-				Homepage
-			</a>
-		</span>
 	</h1>
 </div>
-
-<p class="hidden-md hidden-lg">
-	<a href="$MY_HOMEPAGE_URL" class="btn btn-primary" role="button">
-		<span class="glyphicon glyphicon-home" aria-hidden="true"></span>
-		Homepage
-	</a>
-</p>
 
 EOF
 }
@@ -344,7 +331,7 @@ function page_footer() {
 </footer>
 
 </div>
-<!-- Powered by https://github.com/Cyclenerd/static_status -->
+<!-- Forked from https://github.com/Cyclenerd/static_status -->
 </body>
 </html>
 

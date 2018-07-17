@@ -1,13 +1,6 @@
 # Title for the status page
 MY_STATUS_TITLE="Status Page"
 
-# Link for the homepage button
-MY_HOMEPAGE_URL="https://github.com/Cyclenerd/static_status"
-
-# Shortcut to place the configuration file in a folder.
-# Save it without / at the end.
-MY_STATUS_CONFIG_DIR="."
-
 # List with the configuration. What do we want to monitor?
 MY_HOSTNAME_FILE="./status_files/status_hostname_list.txt"
 
@@ -31,7 +24,7 @@ MY_HOSTNAME_STATUS_HISTORY_TEMP_SORT="/tmp/status_hostname_history_sort.txt"
 # CSS Stylesheet for the status page
 MY_STATUS_STYLESHEET="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css"
 # A footer
-MY_STATUS_FOOTER='Powered by <a href="https://github.com/Cyclenerd/static_status">static_status</a>'
+MY_STATUS_FOOTER='Forked from <a href="https://github.com/Cyclenerd/static_status">static_status</a>'
 
 # Lock file to prevent duplicate execution.
 # If this file exists, status.sh script is terminated.
