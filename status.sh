@@ -22,7 +22,7 @@ MY_COMMANDS=(
 )
 
 # Load config
-MY_STATUS_CONFIG="$BASE_PATH/config"
+MY_STATUS_CONFIG="$BASE_PATH/status_files/config"
 
 ################################################################################
 # Usage
