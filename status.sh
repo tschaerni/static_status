@@ -195,7 +195,7 @@ function port_to_name() {
 
 # get_lastrun_time()
 function get_lastrun_time() {
-	while IFS=';' read -r MY_DESCRIPTION MY_LASTRUN_COMMAND MY_LASTRUN_TIMESTAMP || [[ -n "$MY_LASTRUN_COMMAND" ]]; do
+	while IFS=';' read -r MY_LASTRUN_COMMAND MY_LASTRUN_TIMESTAMP || [[ -n "$MY_LASTRUN_COMMAND" ]]; do
 		if 	[[ "$MY_LASTRUN_COMMAND" = "timestamp" ]]; then
 			if 	[ "$MY_LASTRUN_TIMESTAMP" -ge "0" ]; then
 				MY_LASTRUN_TIME="$((MY_TIMESTAMP-MY_LASTRUN_TIMESTAMP))"
