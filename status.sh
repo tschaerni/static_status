@@ -512,8 +512,9 @@ fi
 #
 
 MY_HOSTNAME_COUNT=0
-while IFS=';' read -r MY_DESCRIPTION MY_COMMAND MY_HOSTNAME MY_PORT || [[ -n "$MY_COMMAND" ]]; do
-
+while IFS=';' read -r MY_DESCRIPTION MY_COMMAND MY_HOSTNAME MY_PORT ; do
+	
+	[[ "$MY_DESCRIPTION" =~ ^#.* ]] && continue
 	if [[ "$MY_COMMAND" = "ping" ]]; then
 		(( MY_HOSTNAME_COUNT++ ))
 		# Detect ping Version
