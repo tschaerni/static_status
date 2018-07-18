@@ -4,7 +4,7 @@
 # What should be monitored? Each line one entry.
 #
 # Structure:
-# <COMMAND>;<HOSTNAME, IP or URL>;<PORT>
+# <DESCRIPTION>;<COMMAND>;<HOSTNAME, IP or URL>;<PORT>
 #
 # COMMAND: Command to run. Can be ping, curl or nc.
 #          ping = send ICMP ECHO_REQUEST packets to network hosts
@@ -22,22 +22,22 @@
 #
 
 #
-# ping;<HOSTNAME or IP>
+# <DESCRIPTION>;ping;<HOSTNAME or IP>
 #
-ping;www.heise.de
+Test Description for ping;ping;www.heise.de
 
 #
-# nc;<HOSTNAME or IP>;<PORT>
+# <DESCRIPTION>;nc;<HOSTNAME or IP>;<PORT>
 #
-nc;www.heise.de;80
+Test description for nc;nc;www.heise.de;80
 
 #
-# curl;<URL>;<PORT>
+# <DESCRIPTION>;curl;<URL>;:<PORT>
 #
-curl;https://www.heise.de/ping
-curl;ftp://ftp.debian.org/debian/README
+Test description for curl;curl;http://localhost;:8000
+Test description for curl that will fail;curl;ftp://ftp.debian.org/debian/README;:80
 
 #
-# grep;<URL>;<ONE WORD>
+# <DESCRIPTION>;grep;<URL>;<ONE WORD>
 #
-grep;https://www.nkn-it.de/imprint.html;Nils
+Test description for grep;grep;https://www.nkn-it.de/imprint.html;Nils
