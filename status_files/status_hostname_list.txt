@@ -34,11 +34,10 @@ Test description for nc;nc;www.heise.de;80
 #
 # <DESCRIPTION>;curl;<URL>;:<PORT>
 #
-Test description for curl;curl;http://google.com
+Test description for curl;curl;http://google.com;
 Test description for curl that will fail;curl;ftp://ftp.debian.org/debian/README;:80
 
 #
-# <DESCRIPTION>;grep;<URL>;<Input for grep>, grep version is BusyBox v1.28.4
+# <DESCRIPTION>;grep;<URL>;<ONE WORD>
 #
 Test description for grep;grep;https://www.nkn-it.de/imprint.html;Nils
-Test description for grep with options;grep;https://horizon.stellar.org;-E [0-9a-fA-F]{40}
