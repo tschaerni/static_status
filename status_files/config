@@ -2,10 +2,10 @@
 MY_STATUS_TITLE="Status Page"
 
 # List with the configuration. What do we want to monitor?
-MY_HOSTNAME_FILE="./status_files/status_hostname_list.txt"
+MY_HOSTNAME_FILE="/opt/status_page/status_files/status_hostname_list.txt"
 
 # Where should the HTML status page be stored?
-MY_STATUS_HTML="./status_files/status_index.html"
+MY_STATUS_HTML="/opt/status_page/status_files/status_index.html"
 
 # Duration we wait for response (nc and curl).
 MY_TIMEOUT="2"
@@ -15,10 +15,10 @@ MY_PING_TIMEOUT="4"
 MY_PING_COUNT="2"
 
 # Location for the status files. Please do not edit created files.
-MY_HOSTNAME_STATUS_OK="./status_files/status_hostname_ok.txt"
-MY_HOSTNAME_STATUS_DOWN="./status_files/status_hostname_down.txt"
-MY_HOSTNAME_STATUS_LASTRUN="./status_files/status_hostname_last.txt"
-MY_HOSTNAME_STATUS_HISTORY="./status_files/status_hostname_history.txt"
+MY_HOSTNAME_STATUS_OK="/opt/status_page/status_files/status_hostname_ok.txt"
+MY_HOSTNAME_STATUS_DOWN="/opt/status_page/status_files/status_hostname_down.txt"
+MY_HOSTNAME_STATUS_LASTRUN="/opt/status_page/status_files/status_hostname_last.txt"
+MY_HOSTNAME_STATUS_HISTORY="/opt/status_page/status_files/status_hostname_history.txt"
 MY_HOSTNAME_STATUS_HISTORY_TEMP_SORT="/tmp/status_hostname_history_sort.txt"
 
 # CSS Stylesheet for the status page

@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  status:
+    image: abc
+    ports:
+      - 80:80
+    volumes:
+      - ./status_files:/opt/status_page/status_files
