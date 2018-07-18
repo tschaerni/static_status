@@ -1,9 +1,15 @@
 version: '3'
 
 services:
-  status:
-    image: abc
+  nginx:
+    image: nginx:1.15.1-alpine
     ports:
       - 80:80
+    volumes:
+      - ./status_files:/opt/status_page/status_files
+      - ./nginx.conf:/etc/nginx/nginx.conf
+
+  status:
+    image: kinecosystem/static-status
     volumes:
       - ./status_files:/opt/status_page/status_files
