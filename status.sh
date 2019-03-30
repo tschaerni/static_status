@@ -213,17 +213,21 @@ function check_downtime() {
 	MY_COMMAND="$2"
 	MY_HOSTNAME="$3"
 	MY_PORT="$4"
+	MY_STRING="$5"
 	MY_DOWN_TIME="0"
 
-	while IFS=';' read -r MY_DOWN_DESCRIPTION MY_DOWN_COMMAND MY_DOWN_HOSTNAME MY_DOWN_PORT MY_DOWN_TIME || [[ -n "$MY_DOWN_COMMAND" ]]; do
+	while IFS=';' read -r MY_DOWN_DESCRIPTION MY_DOWN_COMMAND MY_DOWN_HOSTNAME MY_DOWN_PORT MY_DOWN_STRING MY_DOWN_TIME || [[ -n "$MY_DOWN_COMMAND" ]]; do
 		if [[ "$MY_DOWN_COMMAND" = "ping" ]] ||
 		   [[ "$MY_DOWN_COMMAND" = "nc" ]] ||
 		   [[ "$MY_DOWN_COMMAND" = "grep" ]] ||
-		   [[ "$MY_DOWN_COMMAND" = "curl" ]]; then
+		   [[ "$MY_DOWN_COMMAND" = "curl" ]] ||
+		   [[ "$MY_DOWN_COMMAND" = "ncgrep" ]]; then
 			if 	[[ "$MY_DOWN_HOSTNAME" = "$MY_HOSTNAME" ]]; then
 				if 	[[ "$MY_DOWN_PORT" = "$MY_PORT" ]]; then
-					MY_DOWN_TIME="$((MY_DOWN_TIME+MY_LASTRUN_TIME))"
-					break  # Skip entire rest of loop.
+					if	[[ "$MY_DOWN_STRING" = "$MY_STRING" ]]; then
+						MY_DOWN_TIME="$((MY_DOWN_TIME+MY_LASTRUN_TIME))"
+						break  # Skip entire rest of loop.
+					fi
 				fi
 			fi
 		fi
@@ -236,15 +240,19 @@ function save_downtime() {
 	MY_COMMAND="$2"
 	MY_HOSTNAME="$3"
 	MY_PORT="$4"
-	MY_DOWN_TIME="$5"
-	printf "\\n%s;%s;%s;%s;%s" "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" "$MY_DOWN_TIME" >> "$MY_HOSTNAME_STATUS_DOWN"
+	MY_STRING="$5"
+	MY_DOWN_TIME="$6"
+	printf "\\n%s;%s;%s;%s;%s;%s" "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" "$MY_STRING" "$MY_DOWN_TIME" >> "$MY_HOSTNAME_STATUS_DOWN"
 	if [[ "$BE_LOUD" = "yes" ]] || [[ "$BE_QUIET" = "no" ]]; then
 		printf "\\n%-5s %-4s %s" "DOWN:" "$MY_COMMAND" "$MY_HOSTNAME"
 		if [[ $MY_COMMAND == "nc" ]]; then
 			printf " %s" "$(port_to_name "$MY_PORT")"
 		fi
 		if [[ $MY_COMMAND == "grep" ]]; then
-			printf " %s" "$MY_PORT"
+			printf " %s" "$MY_STRING"
+		fi
+		if [[ $MY_COMMAND == "ncgrep" ]]; then
+			printf " %s %s" "$MY_PORT" "$MY_STRING"
 		fi
 	fi
 }
@@ -255,14 +263,18 @@ function save_availability() {
 	MY_COMMAND="$2"
 	MY_HOSTNAME="$3"
 	MY_PORT="$4"
-	printf "\\n%s;%s;%s;%s" "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" >> "$MY_HOSTNAME_STATUS_OK"
+	MY_STRING="$5"
+	printf "\\n%s;%s;%s;%s;%s" "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" "$MY_STRING" >> "$MY_HOSTNAME_STATUS_OK"
 	if [[ "$BE_LOUD" = "yes" ]]; then
 		printf "\\n%-5s %-4s %s" "UP:" "$MY_COMMAND" "$MY_HOSTNAME"
 		if [[ $MY_COMMAND == "nc" ]]; then
 			printf " %s" "$(port_to_name "$MY_PORT")"
 		fi
 		if [[ $MY_COMMAND == "grep" ]]; then
-			printf " %s" "$MY_PORT"
+			printf " %s" "$MY_STRING"
+		fi
+		if [[ $MY_COMMAND == "ncgrep" ]]; then
+			printf " %s %s" "$MY_PORT" "$MY_STRING"
 		fi
 	fi
 }
@@ -273,10 +285,11 @@ function save_history() {
 	MY_COMMAND="$2"
 	MY_HOSTNAME="$3"
 	MY_PORT="$4"
-	MY_DOWN_TIME="$5"
-	MY_DATE_TIME="$6"
+	MY_STRING="$5"
+	MY_DOWN_TIME="$6"
+	MY_DATE_TIME="$7"
 	if cp "$MY_HOSTNAME_STATUS_HISTORY" "$MY_HOSTNAME_STATUS_HISTORY_TEMP_SORT" &> /dev/null; then
-		printf "\\n%s;%s;%s;%s;%s;%s" "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" "$MY_DOWN_TIME" "$MY_DATE_TIME" > "$MY_HOSTNAME_STATUS_HISTORY"
+		printf "\\n%s;%s;%s;%s;%s;%s;%s" "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" "$MY_STRING" "$MY_DOWN_TIME" "$MY_DATE_TIME" > "$MY_HOSTNAME_STATUS_HISTORY"
 		cat "$MY_HOSTNAME_STATUS_HISTORY_TEMP_SORT" >> "$MY_HOSTNAME_STATUS_HISTORY"
 		rm "$MY_HOSTNAME_STATUS_HISTORY_TEMP_SORT" &> /dev/null
 	else
@@ -290,6 +303,9 @@ function save_history() {
 		fi
 		if [[ $MY_COMMAND == "grep" ]]; then
 			printf " %s" "$MY_PORT"
+		fi
+		if [[ $MY_COMMAND == "ncgrep" ]]; then
+			printf " %s %s" "$MY_PORT" "$MY_STRING"
 		fi
 	fi
 }
@@ -499,7 +515,7 @@ fi
 #
 
 MY_HOSTNAME_COUNT=0
-while IFS=';' read -r MY_DESCRIPTION MY_COMMAND MY_HOSTNAME MY_PORT ; do
+while IFS=';' read -r MY_DESCRIPTION MY_COMMAND MY_HOSTNAME MY_PORT MY_STRING ; do
 	
 	[[ "$MY_DESCRIPTION" =~ ^#.* ]] && continue
 	if [[ "$MY_COMMAND" = "ping" ]]; then
@@ -518,54 +534,67 @@ while IFS=';' read -r MY_DESCRIPTION MY_COMMAND MY_HOSTNAME MY_PORT ; do
 			MY_PING_COMMAND='ping -w'
 		fi
 		if $MY_PING_COMMAND "$MY_PING_TIMEOUT" -c "$MY_PING_COUNT" "$MY_HOSTNAME" &> /dev/null; then
-			check_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" ""
+			check_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "" ""
 			# Check status change
 			if [[ "$MY_DOWN_TIME" -gt "0" ]]; then
-				save_history  "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "" "$MY_DOWN_TIME" "$MY_DATE_TIME"
+				save_history  "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "" "" "$MY_DOWN_TIME" "$MY_DATE_TIME"
 			fi
-			save_availability "$MY_DESCRIPTION" "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" ""
+			save_availability "$MY_DESCRIPTION" "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "" ""
 		else
-			check_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" ""
-			save_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "" "$MY_DOWN_TIME"
+			check_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "" ""
+			save_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "" "" "$MY_DOWN_TIME"
 		fi
 	elif [[ "$MY_COMMAND" = "nc" ]]; then
 		(( MY_HOSTNAME_COUNT++ ))
 		if nc -z -w "$MY_TIMEOUT" "$MY_HOSTNAME" "$MY_PORT" &> /dev/null; then
-			check_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT"
+			check_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" ""
 			# Check status change
 			if [[ "$MY_DOWN_TIME" -gt "0" ]]; then
-				save_history  "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" "$MY_DOWN_TIME" "$MY_DATE_TIME"
+				save_history  "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" "" "$MY_DOWN_TIME" "$MY_DATE_TIME"
 			fi
-			save_availability "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT"
+			save_availability "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" ""
 		else
-			check_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT"
-			save_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" "$MY_DOWN_TIME"
+			check_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" ""
+			save_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" "" "$MY_DOWN_TIME"
 		fi
 	elif [[ "$MY_COMMAND" = "curl" ]]; then
 		(( MY_HOSTNAME_COUNT++ ))
 		if curl -If --max-time "$MY_TIMEOUT" "$MY_HOSTNAME""$MY_PORT" &> /dev/null; then
-			check_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" ""
+			check_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "" ""
 			# Check status change
 			if [[ "$MY_DOWN_TIME" -gt "0" ]]; then
-				save_history  "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "" "$MY_DOWN_TIME" "$MY_DATE_TIME"
+				save_history  "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "" "" "$MY_DOWN_TIME" "$MY_DATE_TIME"
 			fi
-			save_availability "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" ""
+			save_availability "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "" ""
 		else
-			check_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" ""
-			save_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "" "$MY_DOWN_TIME"
+			check_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "" ""
+			save_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "" "" "$MY_DOWN_TIME"
 		fi
 	elif [[ "$MY_COMMAND" = "grep" ]]; then
 		(( MY_HOSTNAME_COUNT++ ))
-		if curl --no-buffer -s --max-time "$MY_TIMEOUT" "$MY_HOSTNAME" | grep -q "$MY_PORT"  &> /dev/null; then
-			check_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT"
+		if curl --no-buffer -s --max-time "$MY_TIMEOUT" "$MY_HOSTNAME" | grep -q "$MY_STRING"  &> /dev/null; then
+			check_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "" "$MY_STRING"
 			# Check status change
 			if [[ "$MY_DOWN_TIME" -gt "0" ]]; then
-				save_history  "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" "$MY_DOWN_TIME" "$MY_DATE_TIME"
+				save_history  "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "" "$MY_STRING" "$MY_DOWN_TIME" "$MY_DATE_TIME"
 			fi
-			save_availability "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT"
+			save_availability "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "" "$MY_STRING"
 		else
-			check_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT"
-			save_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" "$MY_DOWN_TIME"
+			check_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "" "$MY_STRING"
+			save_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "" "$MY_STRING" "$MY_DOWN_TIME"
+		fi
+	elif [[ "$MY_COMMAND" = "ncgrep" ]]; then
+		(( MY_HOSTNAME_COUNT++ ))
+		if nc -w "$MY_TIMEOUT" "$MY_HOSTNAME" "$MY_PORT" | grep -q "$MY_STRING"  &> /dev/null; then
+			check_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" "$MY_STRING"
+			# Check status change
+			if [[ "$MY_DOWN_TIME" -gt "0" ]]; then
+				save_history  "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" "$MY_STRING" "$MY_DOWN_TIME" "$MY_DATE_TIME"
+			fi
+			save_availability "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" "$MY_STRING"
+		else
+			check_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" "$MY_STRING"
+			save_downtime "$MY_DESCRIPTION" "$MY_COMMAND" "$MY_HOSTNAME" "$MY_PORT" "$MY_STRING" "$MY_DOWN_TIME"
 		fi
 	fi
 
@@ -581,9 +610,9 @@ page_header
 # Get outage
 MY_OUTAGE_COUNT=0
 MY_OUTAGE_ITEMS=()
-while IFS=';' read -r MY_DESCRIPTION MY_DOWN_COMMAND MY_DOWN_HOSTNAME MY_DOWN_PORT MY_DOWN_TIME || [[ -n "$MY_DOWN_COMMAND" ]]; do
+while IFS=';' read -r MY_DESCRIPTION MY_DOWN_COMMAND MY_DOWN_HOSTNAME MY_DOWN_PORT MY_DOWN_STRING MY_DOWN_TIME || [[ -n "$MY_DOWN_COMMAND" ]]; do
 
-	if [[ "$MY_DOWN_COMMAND" = "ping" ]] || [[ "$MY_DOWN_COMMAND" = "nc" ]] || [[ "$MY_DOWN_COMMAND" = "curl" ]] || [[ "$MY_DOWN_COMMAND" = "grep" ]]; then
+	if [[ "$MY_DOWN_COMMAND" = "ping" ]] || [[ "$MY_DOWN_COMMAND" = "nc" ]] || [[ "$MY_DOWN_COMMAND" = "curl" ]] || [[ "$MY_DOWN_COMMAND" = "grep" ]] || [[ "$MY_DOWN_COMMAND" = 'ncgrep' ]]; then
 		(( MY_OUTAGE_COUNT++ ))
 		MY_OUTAGE_ITEMS+=("$(item_down)")
 	fi
@@ -593,9 +622,9 @@ done <"$MY_HOSTNAME_STATUS_DOWN"
 # Get available systems
 MY_AVAILABLE_COUNT=0
 MY_AVAILABLE_ITEMS=()
-while IFS=';' read -r MY_DESCRIPTION MY_OK_COMMAND MY_OK_HOSTNAME MY_OK_PORT || [[ -n "$MY_OK_COMMAND" ]]; do
+while IFS=';' read -r MY_DESCRIPTION MY_OK_COMMAND MY_OK_HOSTNAME MY_OK_PORT MY_OK_STRING || [[ -n "$MY_OK_COMMAND" ]]; do
 
-	if [[ "$MY_OK_COMMAND" = "ping" ]] || [[ "$MY_OK_COMMAND" = "nc" ]] || [[ "$MY_OK_COMMAND" = "curl" ]] || [[ "$MY_OK_COMMAND" = "grep" ]]; then
+	if [[ "$MY_OK_COMMAND" = "ping" ]] || [[ "$MY_OK_COMMAND" = "nc" ]] || [[ "$MY_OK_COMMAND" = "curl" ]] || [[ "$MY_OK_COMMAND" = "grep" ]] || [[ "$MY_OK_COMMAND" = "ncgrep" ]]; then
 		(( MY_AVAILABLE_COUNT++ ))
 		MY_AVAILABLE_ITEMS+=("$(item_ok)")
 	fi
@@ -641,9 +670,9 @@ fi
 # Get history (last 10 incidents)
 MY_HISTORY_COUNT=0
 MY_HISTORY_ITEMS=()
-while IFS=';' read -r MY_DESCRIPTION MY_HISTORY_COMMAND MY_HISTORY_HOSTNAME MY_HISTORY_PORT MY_HISTORY_DOWN_TIME MY_HISTORY_DATE_TIME || [[ -n "$MY_HISTORY_COMMAND" ]]; do
+while IFS=';' read -r MY_DESCRIPTION MY_HISTORY_COMMAND MY_HISTORY_HOSTNAME MY_HISTORY_PORT MY_HISTORY_STRING MY_HISTORY_DOWN_TIME MY_HISTORY_DATE_TIME || [[ -n "$MY_HISTORY_COMMAND" ]]; do
 
-	if [[ "$MY_HISTORY_COMMAND" = "ping" ]] || [[ "$MY_HISTORY_COMMAND" = "nc" ]] || [[ "$MY_HISTORY_COMMAND" = "curl" ]] || [[ "$MY_HISTORY_COMMAND" = "grep" ]]; then
+	if [[ "$MY_HISTORY_COMMAND" = "ping" ]] || [[ "$MY_HISTORY_COMMAND" = "nc" ]] || [[ "$MY_HISTORY_COMMAND" = "curl" ]] || [[ "$MY_HISTORY_COMMAND" = "grep" ]] || [[  "$MY_HISTORY_COMMAND" = "ncgrep" ]]; then
 		(( MY_HISTORY_COUNT++ ))
 		MY_HISTORY_ITEMS+=("$(item_history)")
 	fi
