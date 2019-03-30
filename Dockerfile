@@ -1,4 +1,4 @@
-FROM alpine:3.8
+FROM alpine:3.9
 
 # Add bash and curl for the status script
 RUN mkdir -p /opt/status_page && \
